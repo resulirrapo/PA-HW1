@@ -1,72 +1,114 @@
-import java.io.*;
-import java.util.*;
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.StringTokenizer;
 public class Colorare {
-    static final int MOD = 1000000007; // The modulo value
+	static final int Mod = 1000000007; // The modulo value
 
-    public static void main(String[] args) throws FileNotFoundException {
-        Scanner input = new Scanner(new File("colorare.in"));
-        PrintWriter output = new PrintWriter(new File("colorare.out"));
+	public static void main(String[] args) throws FileNotFoundException {
+		MyScanner input = new MyScanner(new FileReader("colorare.in"));
+		PrintWriter output = new PrintWriter(new File("colorare.out"));
 
-        int K = input.nextInt(); // Number of groups
-        int[] X = new int[K]; // Array to store the number of zones
-        char[] T = new char[K]; // Array to store the type of zones (H or V)
+		// Read input
+		int K = input.nextInt();
+		int[] X = new int[K];
+		char[] T = new char[K];
 
-        for (int i = 0; i < K; i++) {
-            X[i] = input.nextInt();
-            T[i] = input.next().charAt(0);
-        }
+		for (int i = 0; i < K; i++) {
+			X[i] = input.nextInt();
+			T[i] = input.next().charAt(0);
+		}
 
-        long result = calculateColorings(K, X, T);
+		long result = calculateColorings(K, X, T);
 
-        output.println(result);
-        output.close();
-        input.close();
-    }
+		output.println(result);
+		output.close();
+	}
 
-    static long calculateColorings(int K, int[] X, char[] T) {
-        long horizontal = 1; // Start with one horizontal segment
-        long vertical = 1; // Start with one vertical segment
+	static long calculateColorings(int K, int[] X, char[] T) {
+		long result = 1;
 
-        // Initialize color counts for the first zone
-        if (T[0] == 'H') {
-            horizontal = (2 * pow(3, X[0], MOD)) % MOD; // Horizontal can be extended by 2 colors
-            vertical = (2 * pow(3, X[0] - 1, MOD)) % MOD; // Vertical can follow horizontal
-        } else {
-            horizontal = (2 * pow(3, X[0] - 1, MOD)) % MOD; // Horizontal can follow vertical
-            vertical = (2 * pow(3, X[0], MOD)) % MOD; // Vertical can be extended by 2 colors
-        }
+		// Initialize color counts if they are at the begining
+		if (T[0] == 'H') {
+			result = 6 * pow(3, X[0] - 1, Mod);
+		} else if (T[0] == 'V') {
+			result = 3 * pow(2, X[0] - 1, Mod);
+		}
 
-        for (int i = 1; i < K; i++) {
-            long newHorizontal, newVertical;
+		// Calculate the number of colorings at the middle
+		for (int i = 1; i < K; i++) {
+			if (T[i] == 'H' && T[i - 1] == 'H') {
+				result *= pow(3, X[i], Mod);
+			} else if (T[i] == 'V' && T[i - 1] == 'V') {
+				result *= pow(2, X[i], Mod);
+			} else if (T[i] == 'H' && T[i - 1] == 'V') {
+				result *= 2 * pow(3, X[i] - 1, Mod);
+			} else {
+				result *= pow(2, X[i] - 1, Mod);
+			}
+			result %= Mod;
+		}
+		return result;
+	}
 
-            if (T[i] == 'H') {
-                newHorizontal = (2 * horizontal) % MOD; // Extend horizontal by 2 colors
-                newVertical = (2 * vertical) % MOD; // Horizontal can follow vertical
-                horizontal = (newHorizontal * pow(3, X[i] - 1, MOD)) % MOD; // Apply the power for the length of the segment
-                vertical = (newVertical * pow(3, X[i] - 1, MOD)) % MOD;
-            } else {
-                newHorizontal = (2 * vertical) % MOD; // Vertical can follow horizontal
-                newVertical = (2 * horizontal + vertical) % MOD; // Extend vertical by 2 colors
-                horizontal = (newHorizontal * pow(3, X[i] - 1, MOD)) % MOD;
-                vertical = (newVertical * pow(3, X[i], MOD)) % MOD; // Apply the power for the length of the segment
-            }
-        }
+	// Calculate the power of a number with modulo
+	static long pow(long base, int exponent, int Mod) {
+		long result = 1;
+		base %= Mod;
+		while (exponent > 0) {
+			if (exponent % 2 == 1) {
+				result = (result * base) % Mod;
+			}
+			base = (base * base) % Mod;
+			exponent /= 2;
+		}
+		return result;
+	}
+}
 
-        long result = (horizontal + vertical) % MOD;
-        return result;
-    }
+// Custom Scanner class
+class MyScanner {
+	private BufferedReader br;
+	private StringTokenizer st;
 
-    static long pow(long base, int exponent, int MOD) {
-        long result = 1;
-        base %= MOD;
-        while (exponent > 0) {
-            if (exponent % 2 == 1) {
-                result = (result * base) % MOD;
-            }
-            base = (base * base) % MOD;
-            exponent /= 2;
-        }
-        return result;
-    }
+	public MyScanner(Reader reader) {
+		br = new BufferedReader(reader);
+	}
+
+	public String next() {
+		while (st == null || !st.hasMoreElements()) {
+			try {
+				st = new StringTokenizer(br.readLine());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return st.nextToken();
+	}
+
+	public int nextInt() {
+		return Integer.parseInt(next());
+	}
+
+	public long nextLong() {
+		return Long.parseLong(next());
+	}
+
+	public double nextDouble() {
+		return Double.parseDouble(next());
+	}
+
+	public String nextLine() {
+		String str = "";
+		try {
+			str = br.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return str;
+	}
 }

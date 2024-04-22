@@ -1,65 +1,114 @@
-import java.io.*;
-import java.util.*;
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.StringTokenizer;
 public class Compresie {
-    public static void main(String[] args) throws FileNotFoundException {
-        Scanner input = new Scanner(new File("compresie.in"));
-        PrintWriter output = new PrintWriter(new File("compresie.out"));
+	public static void main(String[] args) throws FileNotFoundException {
+		MyScanner input = new MyScanner(new FileReader("compresie.in"));
+		PrintWriter output = new PrintWriter(new File("compresie.out"));
 
-        int N = input.nextInt();
-        int[] A = new int[N];
-        for (int i = 0; i < N; i++) {
-            A[i] = input.nextInt();
-        }
+		// Read input
+		int N = input.nextInt();
+		int[] A = new int[N];
+		for (int i = 0; i < N; i++) {
+			A[i] = input.nextInt();
+		}
 
-        int M = input.nextInt();
-        int[] B = new int[M];
-        for (int i = 0; i < M; i++) {
-            B[i] = input.nextInt();
-        }
+		int M = input.nextInt();
+		int[] B = new int[M];
+		for (int i = 0; i < M; i++) {
+			B[i] = input.nextInt();
+		}
 
-        int result = findMaxLength(A, B);
-        output.println(result);
-        output.close();
-        input.close();
-    }
+		int result = findMaxLength(A, B);
+		output.println(result);
+		output.close();
+	}
 
-    private static int findMaxLength(int[] A, int[] B) {
-        int i = 0, j = 0;
-        int matchedLength = 0;
+	// Find the maximum number of segments that can be matched
+	private static int findMaxLength(int[] A, int[] B) {
+		int i = 0, j = 0;
+		int match = 0;
 
-        while (i < A.length && j < B.length) {
-            long sumA = A[i];
-            long sumB = B[j];
+		while (i < A.length && j < B.length) {
+			long sumA = A[i];
+			long sumB = B[j];
 
-            // Increment pointers to build sums until they match
-            while (i < A.length && j < B.length && sumA != sumB) {
-                if (sumA < sumB && i + 1 < A.length) {
-                    i++;
-                    sumA += A[i];
-                } else if (sumB < sumA && j + 1 < B.length) {
-                    j++;
-                    sumB += B[j];
-                } else {
-                    break;  // Break if sums can't be matched
-                }
-            }
+			// Increment pointers to build sums until they match
+			while (i < A.length && j < B.length && sumA != sumB) {
+				if (sumA < sumB) {
+					i++;
+					sumA += A[i];
+				} else if (sumB < sumA) {
+					j++;
+					sumB += B[j];
+				} else {
+					break;
+				}
+			}
 
-            // Check if we have a match
-            if (sumA == sumB) {
-                matchedLength += 1;  // Increment matched segment count
-                i++;  // Move both pointers forward
-                j++;
-            } else {
-                return -1;  // No possible way to compress and match
-            }
-        }
+			// Check if we have a match
+			if (sumA == sumB) {
+				match += 1;  // Increment matched segment count
+				i++;  // Move both pointers forward
+				j++;
+			} else {
+				return -1;
+			}
+		}
 
-        // If one or both of the arrays still have elements left unmatched, return -1
-        if (i < A.length || j < B.length) {
-            return -1;
-        }
+		// If one or both of the arrays still have elements left unmatched, we return -1
+		if (i < A.length || j < B.length) {
+			return -1;
+		}
 
-        return matchedLength;
-    }
+		return match;
+	}
+}
+
+// Custom Scanner class
+class MyScanner {
+	private BufferedReader br;
+	private StringTokenizer st;
+
+	public MyScanner(Reader reader) {
+		br = new BufferedReader(reader);
+	}
+
+	public String next() {
+		while (st == null || !st.hasMoreElements()) {
+			try {
+				st = new StringTokenizer(br.readLine());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return st.nextToken();
+	}
+
+	public int nextInt() {
+		return Integer.parseInt(next());
+	}
+
+	public long nextLong() {
+		return Long.parseLong(next());
+	}
+
+	public double nextDouble() {
+		return Double.parseDouble(next());
+	}
+
+	public String nextLine() {
+		String str = "";
+		try {
+			str = br.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return str;
+	}
 }
